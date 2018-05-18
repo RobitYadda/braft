@@ -1,3 +1,5 @@
+enable_language(CXX)
+enable_language(C)
 if(BUILD_UNIT_TESTS)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUNIT_TEST")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DUNIT_TEST")
@@ -7,15 +9,19 @@ elseif(NOT DEBUG)
 endif()
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
-include_directories(${CMAKE_SOURCE_DIR}/src)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
 
-add_library(OBJ_LIB OBJECT ${SOURCES})
+add_library(OBJ_LIB_BRAFT OBJECT ${SOURCES})
 
-set_property(TARGET ${OBJ_LIB} PROPERTY POSITION_INDEPENDENT_CODE 1)
-add_library(braft-shared SHARED $<TARGET_OBJECTS:OBJ_LIB>)
-add_library(braft-static STATIC $<TARGET_OBJECTS:OBJ_LIB>)
-target_link_libraries(braft-shared ${DYNAMIC_LIB})
-target_link_libraries(braft-static ${DYNAMIC_LIB})
+set_property(TARGET ${OBJ_LIB_BRAFT} PROPERTY POSITION_INDEPENDENT_CODE 1)
+add_library(braft-shared SHARED $<TARGET_OBJECTS:OBJ_LIB_BRAFT>)
+add_library(braft-static STATIC $<TARGET_OBJECTS:OBJ_LIB_BRAFT>)
+SET_TARGET_PROPERTIES(braft-static PROPERTIES LINKER_LANGUAGE CXX)
+SET_TARGET_PROPERTIES(braft-shared PROPERTIES LINKER_LANGUAGE CXX)
+target_link_libraries(braft-shared ${DYNAMIC_LIB} brpc-shared)
+target_link_libraries(braft-static ${DYNAMIC_LIB} brpc-static)
+
+message("HELLO "  ${BRPCLIBS})
 
 SET_TARGET_PROPERTIES(braft-static PROPERTIES OUTPUT_NAME braft CLEAN_DIRECT_OUTPUT 1)
 SET_TARGET_PROPERTIES(braft-shared PROPERTIES OUTPUT_NAME braft CLEAN_DIRECT_OUTPUT 1)

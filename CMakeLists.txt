@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8.10)
 project(braft C CXX)
 
 #option(EXAMPLE_LINK_SO "Whether examples are linked dynamically" OFF)
-option(BRPC_WITH_GLOG "With glog" OFF)
+option(BRPC_WITH_GLOG "With glog" ON)
 
 set(WITH_GLOG_VAL "0")
 if(BRPC_WITH_GLOG)
@@ -52,11 +52,15 @@ if(BRPC_WITH_GLOG)
     include_directories(${GLOG_INCLUDE_PATH})
 endif()
 
-find_path(BRPC_INCLUDE_PATH NAMES brpc/server.h)
-find_library(BRPC_LIB NAMES libbrpc.a brpc)
-if ((NOT BRPC_INCLUDE_PATH) OR (NOT BRPC_LIB))
-    message(FATAL_ERROR "Fail to find brpc")
-endif()
+#add_subdirectory(../brpc)
+
+include_directories(src  ../brpc/src third_party ${CMAKE_CURRENT_BINARY_DIR}/third_party/brpc/output/include)
+
+#find_path(BRPC_INCLUDE_PATH NAMES brpc/server.h)
+#find_library(BRPC_LIB NAMES libbrpc.a brpc)
+#if ((NOT BRPC_INCLUDE_PATH) OR (NOT BRPC_LIB))
+#    message(FATAL_ERROR "Fail to find brpc")
+#endif()
 
 if (NOT PROTOBUF_PROTOC_EXECUTABLE)
     get_filename_component(PROTO_LIB_DIR ${PROTOBUF_LIBRARY} DIRECTORY)
@@ -104,7 +108,7 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/output/lib)
 # for *.a
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/output/lib)
 
-file(GLOB BRAFT_PROTOS "${CMAKE_SOURCE_DIR}/src/braft/*.proto")
+file(GLOB BRAFT_PROTOS "${CMAKE_CURRENT_SOURCE_DIR}/src/braft/*.proto")
 foreach(PROTO ${BRAFT_PROTOS})
     get_filename_component(PROTO_WE ${PROTO} NAME_WE)
     list(APPEND PROTO_SRCS "${CMAKE_CURRENT_BINARY_DIR}/braft/${PROTO_WE}.pb.cc")
@@ -112,8 +116,8 @@ foreach(PROTO ${BRAFT_PROTOS})
         COMMAND ${PROTOBUF_PROTOC_EXECUTABLE} ${PROTO_FLAGS}
         --cpp_out=${CMAKE_CURRENT_BINARY_DIR}
         --proto_path=${PROTOBUF_INCLUDE_DIR}
-        --proto_path=${CMAKE_SOURCE_DIR}/src
-        --proto_path=${CMAKE_SOURCE_DIR}/src/braft/ ${PROTO}
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/src
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/src/braft/ ${PROTO}
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
         ERROR_VARIABLE PROTO_ERROR
         RESULT_VARIABLE PROTO_RESULT
@@ -124,14 +128,14 @@ foreach(PROTO ${BRAFT_PROTOS})
     endif()
 endforeach()
 
-file(GLOB_RECURSE BRAFT_SOURCES "${CMAKE_SOURCE_DIR}/src/braft/*.cpp")
+file(GLOB_RECURSE BRAFT_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/braft/*.cpp")
 set(SOURCES
     ${BRAFT_SOURCES}
     ${PROTO_SRCS}
     )
 
 include_directories(
-    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
     ${CMAKE_CURRENT_BINARY_DIR}
 )
 
@@ -181,7 +185,7 @@ file(COPY ${CMAKE_CURRENT_BINARY_DIR}/braft/
         PATTERN "*.h"
         PATTERN "*.hpp"
         )
-file(COPY ${CMAKE_SOURCE_DIR}/src/
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/src/
         DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/output/include/
         FILES_MATCHING
         PATTERN "*.h"
