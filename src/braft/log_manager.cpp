@@ -332,8 +332,8 @@ int LogManager::check_and_resolve_conflict(
         // should check and resolve the confliction between the local logs and
         // |entries|
         if (entries->front()->id.index > _last_log_index + 1) {
-            done->status().set_error(EINVAL, "There's gap between first_index=%ld "
-                                     "and last_log_index=%ld", 
+            done->status().set_error(EINVAL, "There's gap between first_index=%" PRId64
+                                     " and last_log_index=%" PRId64,
                                      entries->front()->id.index, _last_log_index);
             return -1;
         }
@@ -414,13 +414,8 @@ void LogManager::append_entries(
         // Add ref for disk_thread
         (*entries)[i]->AddRef();
         if ((*entries)[i]->type == ENTRY_TYPE_CONFIGURATION) {
-            ConfigurationEntry conf;
-            conf.id = (*entries)[i]->id;
-            conf.conf = *((*entries)[i]->peers);
-            if (((*entries)[i]->old_peers)) {
-                conf.old_conf = *((*entries)[i]->old_peers);
-            }
-            _config_manager->add(conf);
+            ConfigurationEntry conf_entry(*((*entries)[i]));
+            _config_manager->add(conf_entry);
         }
     }
 
@@ -737,7 +732,7 @@ LogEntry* LogManager::get_entry(const int64_t index) {
     g_read_entry_from_storage << 1;
     entry = _log_storage->get_entry(index);
     if (!entry) {
-        report_error(EIO, "Corrupted entry at index=%ld", index);
+        report_error(EIO, "Corrupted entry at index=%" PRId64, index);
     }
     return entry;
 }
@@ -905,14 +900,14 @@ butil::Status LogManager::check_consistency() {
         if (_first_log_index == 1) {
             return butil::Status::OK();
         }
-        return butil::Status(EIO, "Missing logs in (0, %ld)", _first_log_index);
+        return butil::Status(EIO, "Missing logs in (0, %" PRId64 ")", _first_log_index);
     } else {
         if (_last_snapshot_id.index >= _first_log_index - 1
                 && _last_snapshot_id.index <= _last_log_index) {
             return butil::Status::OK();
         }
-        return butil::Status(EIO, "There's a gap between snapshot={%ld, %ld}"
-                                 " and log=[%ld, %ld] ",
+        return butil::Status(EIO, "There's a gap between snapshot={%" PRId64 ", %" PRId64 "}"
+                                 " and log=[%" PRId64 ", %" PRId64 "] ",
                             _last_snapshot_id.index, _last_snapshot_id.term,
                             _first_log_index, _last_log_index);
     }

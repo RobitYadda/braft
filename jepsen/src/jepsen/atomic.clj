@@ -85,7 +85,7 @@
         (c/on node
             (c/su
                 (c/cd atomic-path
-                    (c/exec "./atomic_test "
+                    (c/exec "./atomic_test"
                           :-conf peers
                           :-atomic_op "get"
                           :-atomic_id id))))
@@ -102,7 +102,7 @@
         (c/on node
             (c/su
                 (c/cd atomic-path
-                    (c/exec "./atomic_test "
+                    (c/exec "./atomic_test"
                             :-conf peers
                             :-atomic_op "set"
                             :-atomic_val value
@@ -120,7 +120,7 @@
         (c/on node
             (c/su
                 (c/cd atomic-path
-                    (c/exec "./atomic_test "
+                    (c/exec "./atomic_test"
                             :-conf peers
                             :-atomic_op "cas"
                             :-atomic_val value1
@@ -226,12 +226,17 @@
           :db   (db)}
          opts))
 
+(defn cas-register-nil-zero
+  "A compare-and-set register, which read nil return 0"
+  ([]      (model/->CASRegister 0))
+  ([value] (model/->CASRegister value)))
+
 (defn create-test
   "A generic create test."
   [name opts]
   (atomic-test (str "." name)
            (merge {:client  (cas-client)
-                   :model     (model/cas-register)
+                   :model     (cas-register-nil-zero)
                    :checker   (checker/compose {:html   timeline/html
                                                 :linear checker/linearizable})
                    :ssh {:username "root"
