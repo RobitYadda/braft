@@ -57,7 +57,6 @@ if(BRPC_WITH_GLOG)
     include_directories(${GLOG_INCLUDE_PATH})
 endif()
 
-<<<<<<< HEAD
 #add_subdirectory(../brpc)
 
 include_directories(src  ../brpc/src third_party ${CMAKE_CURRENT_BINARY_DIR}/third_party/brpc/output/include)
